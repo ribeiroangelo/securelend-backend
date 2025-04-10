@@ -1,0 +1,61 @@
+# Maven Build Files
+/target/
+/*.jar
+/*.war
+/*.ear
+
+# Logs
+*.log
+logs/
+log/
+
+# IDE Files
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# Local Configuration Files
+application.properties  # If it contains secrets; use application-dev.properties instead
+application-*.properties  # Ignore all profile-specific files with sensitive data
+*.env
+
+# Database Files (H2 In-Memory or File-Based)
+*.db
+*.mv.db
+*.trace.db
+*.lock.db
+
+# Dependency Management
+dependency-reduced-pom.xml
+pom.xml.versionsBackup
+
+# OS-Specific Files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Testing
+/test-output/
+/surefire-reports/
+/failsafe-reports/
+
+# Terraform (if used in the same repo)
+/terraform.tfstate
+/terraform.tfstate.backup
+/.terraform/
+*.tfvars  # Terraform variable files with secrets
+
+# Miscellaneous
+*.swp
+*.swo
+*.tmp
