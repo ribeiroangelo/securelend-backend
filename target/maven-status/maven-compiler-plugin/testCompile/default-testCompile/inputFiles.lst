@@ -1,0 +1,4 @@
+/home/angelo/workspace/glacier/securelend-backend/src/test/java/com/example/authservice/service/UserServiceTest.java
+/home/angelo/workspace/glacier/securelend-backend/src/test/java/com/example/authservice/security/JwtUtilTest.java
+/home/angelo/workspace/glacier/securelend-backend/src/test/java/com/example/authservice/security/JwtFilterTest.java
+/home/angelo/workspace/glacier/securelend-backend/src/test/java/com/example/authservice/controller/AuthControllerTest.java
