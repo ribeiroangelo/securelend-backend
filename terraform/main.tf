@@ -14,8 +14,8 @@ resource "random_string" "suffix" {
 
 resource "aws_s3_object" "app_jar" {
   bucket = aws_s3_bucket.app_bucket.bucket
-  key    = "authservice-0.0.1-SNAPSHOT.jar"
-  source = "authservice-0.0.1-SNAPSHOT.jar"  # Updated path
+  key    = "securelend-backend-0.0.1-SNAPSHOT.jar"
+  source = "securelend-backend-0.0.1-SNAPSHOT.jar"  # Updated path
 }
 
 resource "aws_elastic_beanstalk_application" "securelend_auth" {
