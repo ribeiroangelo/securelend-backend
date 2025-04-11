@@ -21,7 +21,20 @@ jobs:
       - name: Build and Test with Maven
         run: mvn -B test package --file pom.xml
 
-      # Copy JAR to terraform/ directory
+      # Debug: Show directory contents
+      - name: Debug Directory Structure
+        run: ls -R
+
+      # Debug: Check if JAR exists
+      - name: Check JAR Existence
+        run: |
+          if [ -f "target/authservice-0.0.1-SNAPSHOT.jar" ]; then
+            echo "JAR found!"
+          else
+            echo "JAR not found!"
+            exit 1
+          fi
+
       - name: Copy JAR to Terraform directory
         run: cp target/authservice-0.0.1-SNAPSHOT.jar terraform/
 
