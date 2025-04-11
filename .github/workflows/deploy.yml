@@ -1,0 +1,54 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      # Build the Spring Boot JAR with Maven
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      # Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Adjust to your region
+
+      # Set up Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0  # Use a stable version
+
+      # Initialize Terraform
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      # Apply Terraform (uploads JAR to S3 and deploys to EB)
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve -var "jwt_secret=${{ secrets.JWT_SECRET }}"
+
+      # Optional: Output the app URL
+      - name: Output App URL
+        working-directory: ./terraform
+        run: terraform output app_url
