@@ -38,7 +38,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./terraform
-        run: terraform init
+        run: terraform init -backend-config="bucket=securelend-terraform-state" -backend-config="key=state/terraform.tfstate" -backend-config="region=us-east-1" -force-copy
 
       - name: Terraform Apply
         working-directory: ./terraform
