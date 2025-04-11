@@ -43,7 +43,7 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   application         = aws_elastic_beanstalk_application.securelend_auth.name
   solution_stack_name = "64bit Amazon Linux 2023 v4.5.0 running Corretto 17"
   version_label       = aws_elastic_beanstalk_application_version.v1.name
-
+  
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "InstanceType"
@@ -52,7 +52,7 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
 
   setting {
     namespace = "aws:elasticbeanstalk:container:java"
-    name      = "Port"
+    name      = "SERVER_PORT"
     value     = "5000"
   }
 
