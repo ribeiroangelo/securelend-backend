@@ -2,7 +2,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# S3 bucket to store the application JAR
 resource "aws_s3_bucket" "app_bucket" {
   bucket = "securelend-auth-bucket-${random_string.suffix.result}"
 }
@@ -13,28 +12,24 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
-# Upload the JAR to S3
 resource "aws_s3_object" "app_jar" {
   bucket = aws_s3_bucket.app_bucket.bucket
   key    = "authservice-0.0.1-SNAPSHOT.jar"
-  source = "../target/authservice-0.0.1-SNAPSHOT.jar" # Built by GitHub Actions
+  source = "authservice-0.0.1-SNAPSHOT.jar"  # Updated path
 }
 
-# Elastic Beanstalk Application
 resource "aws_elastic_beanstalk_application" "securelend_auth" {
   name        = "securelend-auth"
   description = "Authentication service for SecureLend"
 }
 
-# Elastic Beanstalk Application Version
 resource "aws_elastic_beanstalk_application_version" "v1" {
-  name        = "v${timestamp()}"  # Unique version per deploy
+  name        = "v${timestamp()}"
   application = aws_elastic_beanstalk_application.securelend_auth.name
   bucket      = aws_s3_bucket.app_bucket.bucket
   key         = aws_s3_object.app_jar.key
 }
 
-# Elastic Beanstalk Environment
 resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   name                = "securelend-auth-env"
   application         = aws_elastic_beanstalk_application.securelend_auth.name
@@ -62,7 +57,7 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "SPRING_JWT_EXPIRATION"
-    value     = "86400000"  # Hardcoded per your choice
+    value     = "86400000"
   }
 
   setting {
