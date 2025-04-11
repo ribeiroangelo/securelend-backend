@@ -10,6 +10,35 @@ provider "aws" {
   region = var.aws_region
 }
 
+# IAM Role for EC2 instances
+resource "aws_iam_role" "eb_instance_role" {
+  name = "securelend-eb-instance-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Attach policies to the role
+resource "aws_iam_role_policy_attachment" "eb_instance_policy" {
+  role       = aws_iam_role.eb_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
+}
+
+# Instance Profile
+resource "aws_iam_instance_profile" "eb_instance_profile" {
+  name = "securelend-eb-instance-profile"
+  role = aws_iam_role.eb_instance_role.name
+}
+
 resource "aws_s3_bucket" "app_bucket" {
   bucket = "securelend-auth-bucket-${random_string.suffix.result}"
 }
@@ -38,11 +67,49 @@ resource "aws_elastic_beanstalk_application_version" "v1" {
   key         = aws_s3_object.app_jar.key
 }
 
+resource "aws_iam_role_policy" "eb_s3_cloudwatch" {
+  name   = "securelend-eb-s3-cloudwatch"
+  role   = aws_iam_role.eb_instance_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "${aws_s3_bucket.app_bucket.arn}",
+          "${aws_s3_bucket.app_bucket.arn}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:PutLogEvents",
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   name                = "securelend-auth-env"
   application         = aws_elastic_beanstalk_application.securelend_auth.name
   solution_stack_name = "64bit Amazon Linux 2023 v4.5.0 running Corretto 17"
   version_label       = aws_elastic_beanstalk_application_version.v1.name
+
+  # Associate instance profile
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.eb_instance_profile.name
+  }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
@@ -50,7 +117,6 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
     value     = "t3.micro"
   }
 
-  # Set Spring Boot server.port via environment variable
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "SERVER_PORT"
@@ -75,7 +141,6 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
     value     = "LoadBalanced"
   }
 
-  # Configure load balancer listener (port 80 -> 5000)
   setting {
     namespace = "aws:elbv2:listener:80"
     name      = "ListenerEnabled"
@@ -83,9 +148,15 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   }
 
   setting {
+    namespace = "aws:elb:healthcheck"
+    name      = "Target"
+    value     = "TCP:5000"
+  }
+
+  setting {
     namespace = "aws:elasticbeanstalk:command"
     name      = "Timeout"
-    value     = "1800"  # Increase timeout for initial deploy
+    value     = "1800"
   }
 
   setting {
@@ -104,5 +175,9 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
     namespace = "aws:elasticbeanstalk:cloudwatch:logs"
     name      = "StreamLogs"
     value     = "true"
+  }
+
+  timeouts {
+    create = "30m"
   }
 }
