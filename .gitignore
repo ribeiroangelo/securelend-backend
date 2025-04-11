@@ -10,27 +10,22 @@ logs/
 log/
 
 # IDE Files
-# IntelliJ IDEA
 .idea/
 *.iml
 *.ipr
 *.iws
-
-# Eclipse
 .classpath
 .project
 .settings/
 bin/
-
-# VS Code
 .vscode/
 
 # Local Configuration Files
-application.properties  # If it contains secrets; use application-dev.properties instead
-application-*.properties  # Ignore all profile-specific files with sensitive data
-*.env
+application.properties  # Exclude main properties if it might contain secrets locally
+application-*.properties  # Exclude profile-specific files
+*.env  # Exclude environment variable files
 
-# Database Files (H2 In-Memory or File-Based)
+# Database Files (H2)
 *.db
 *.mv.db
 *.trace.db
@@ -41,19 +36,19 @@ dependency-reduced-pom.xml
 pom.xml.versionsBackup
 
 # OS-Specific Files
-.DS_Store  # macOS
-Thumbs.db  # Windows
+.DS_Store
+Thumbs.db
 
 # Testing
 /test-output/
 /surefire-reports/
 /failsafe-reports/
 
-# Terraform (if used in the same repo)
+# Terraform (if in same repo)
 /terraform.tfstate
 /terraform.tfstate.backup
 /.terraform/
-*.tfvars  # Terraform variable files with secrets
+*.tfvars
 
 # Miscellaneous
 *.swp

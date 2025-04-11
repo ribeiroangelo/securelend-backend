@@ -12,9 +12,7 @@ public class JwtUtilTest {
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
-        // Inject test values via reflection (since @Value is used)
-        ReflectionTestUtils.setField(jwtUtil, "secret", "your-very-secure-secret-key");
+        jwtUtil = new JwtUtil("your-very-secure-secret-key-with-32bytes!!"); // 32 bytes = 256 bits
         ReflectionTestUtils.setField(jwtUtil, "expiration", 86400000L);
     }
 
