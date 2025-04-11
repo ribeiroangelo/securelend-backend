@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "securelend-terraform-state"
+    key    = "state/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -15,7 +23,7 @@ resource "random_string" "suffix" {
 resource "aws_s3_object" "app_jar" {
   bucket = aws_s3_bucket.app_bucket.bucket
   key    = "securelend-backend-0.0.1-SNAPSHOT.jar"
-  source = "securelend-backend-0.0.1-SNAPSHOT.jar"  # Updated path
+  source = "securelend-backend-0.0.1-SNAPSHOT.jar"
 }
 
 resource "aws_elastic_beanstalk_application" "securelend_auth" {
@@ -33,7 +41,7 @@ resource "aws_elastic_beanstalk_application_version" "v1" {
 resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   name                = "securelend-auth-env"
   application         = aws_elastic_beanstalk_application.securelend_auth.name
-  solution_stack_name = "64bit Amazon Linux 2023 v4.1.1 running Corretto 17"
+  solution_stack_name = "64bit Amazon Linux 2023 v4.5.0 running Corretto 17"
   version_label       = aws_elastic_beanstalk_application_version.v1.name
 
   setting {
