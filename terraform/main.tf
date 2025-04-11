@@ -10,7 +10,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# IAM Role for EC2 instances
 resource "aws_iam_role" "eb_instance_role" {
   name = "securelend-eb-instance-role"
   assume_role_policy = jsonencode({
@@ -27,13 +26,11 @@ resource "aws_iam_role" "eb_instance_role" {
   })
 }
 
-# Attach policies to the role
 resource "aws_iam_role_policy_attachment" "eb_instance_policy" {
   role       = aws_iam_role.eb_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
 }
 
-# Instance Profile
 resource "aws_iam_instance_profile" "eb_instance_profile" {
   name = "securelend-eb-instance-profile"
   role = aws_iam_role.eb_instance_role.name
@@ -67,44 +64,12 @@ resource "aws_elastic_beanstalk_application_version" "v1" {
   key         = aws_s3_object.app_jar.key
 }
 
-resource "aws_iam_role_policy" "eb_s3_cloudwatch" {
-  name   = "securelend-eb-s3-cloudwatch"
-  role   = aws_iam_role.eb_instance_role.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "${aws_s3_bucket.app_bucket.arn}",
-          "${aws_s3_bucket.app_bucket.arn}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:PutLogEvents",
-          "logs:CreateLogStream",
-          "logs:CreateLogGroup"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
 resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   name                = "securelend-auth-env"
   application         = aws_elastic_beanstalk_application.securelend_auth.name
   solution_stack_name = "64bit Amazon Linux 2023 v4.5.0 running Corretto 17"
   version_label       = aws_elastic_beanstalk_application_version.v1.name
 
-  # Associate instance profile
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
@@ -156,7 +121,7 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
   setting {
     namespace = "aws:elasticbeanstalk:command"
     name      = "Timeout"
-    value     = "1800"
+    value     = "1800"  # 30 minutes for deployment commands
   }
 
   setting {
@@ -175,9 +140,5 @@ resource "aws_elastic_beanstalk_environment" "securelend_auth_env" {
     namespace = "aws:elasticbeanstalk:cloudwatch:logs"
     name      = "StreamLogs"
     value     = "true"
-  }
-
-  timeouts {
-    create = "30m"
   }
 }
